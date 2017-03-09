@@ -1,0 +1,14 @@
+<launch>
+  <node pkg="joystick" type="joystick_logitech_driver.py" name="joystick_logitech_driver" output="screen"/>
+
+  <node pkg="ucontroller_tilaunchpad" type="lm4f_driver.py" name="lm4f_driver" output="screen">
+    <param name="listening_to_navstack" value="True" type="bool"/>
+  </node>
+
+  <include file="$(find imu_vn200)/launch/hardware.launch"/>
+  <include file="$(find gps_trimble_driver)/launch/launch.launch"/>
+
+  <node pkg="ekf" type="ekf_node.py" name="ekf" output="screen">
+    <param name="using_gps" value="True" type="bool"/>
+  </node>
+</launch>

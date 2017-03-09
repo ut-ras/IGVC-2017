@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: igvc_sim
+Description: Description of igvc_sim
+Version: 0.0.0
+Cflags: -I/opt/ros/hydro/include
+Libs: -L/usr/local/lib -lurdf -l:/opt/ros/hydro/lib/liburdfdom_sensor.so -l:/opt/ros/hydro/lib/liburdfdom_model_state.so -l:/opt/ros/hydro/lib/liburdfdom_model.so -l:/opt/ros/hydro/lib/liburdfdom_world.so -lrosconsole_bridge -lroscpp -l:/usr/lib/libboost_signals-mt.so -l:/usr/lib/libboost_filesystem-mt.so -lrosconsole -lrosconsole_log4cxx -lrosconsole_backend_interface -l:/usr/lib/liblog4cxx.so -l:/usr/lib/libboost_regex-mt.so -lxmlrpcpp -lroscpp_serialization -lrostime -l:/usr/lib/libboost_date_time-mt.so -l:/usr/lib/libboost_system-mt.so -l:/usr/lib/libboost_thread-mt.so -lpthread -lcpp_common -l:/opt/ros/hydro/lib/libconsole_bridge.so -lurdfdom_sensor -lurdfdom_model_state -lurdfdom_model -lurdfdom_world -lconsole_bridge
+Requires: roscpp

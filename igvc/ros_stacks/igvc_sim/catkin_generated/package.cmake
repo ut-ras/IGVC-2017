@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "igvc_sim")
+set(igvc_sim_MAINTAINER "jjames <jjames@todo.todo>")
+set(igvc_sim_DEPRECATED "")
+set(igvc_sim_VERSION "0.0.0")
+set(igvc_sim_BUILD_DEPENDS "roscpp" "urdf" "urdf_parser" "sdformat")
+set(igvc_sim_RUN_DEPENDS "roscpp" "urdf" "urdf_parser" "sdformat")
+set(igvc_sim_BUILDTOOL_DEPENDS "catkin")

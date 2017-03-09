@@ -1,0 +1,20 @@
+(cl:defpackage gps_trimble_driver-srv
+  (:use )
+  (:export
+   "WAYPOINTS"
+   "<WAYPOINTS-REQUEST>"
+   "WAYPOINTS-REQUEST"
+   "<WAYPOINTS-RESPONSE>"
+   "WAYPOINTS-RESPONSE"
+   "GETZERO"
+   "<GETZERO-REQUEST>"
+   "GETZERO-REQUEST"
+   "<GETZERO-RESPONSE>"
+   "GETZERO-RESPONSE"
+   "POINT"
+   "<POINT-REQUEST>"
+   "POINT-REQUEST"
+   "<POINT-RESPONSE>"
+   "POINT-RESPONSE"
+  ))
+
