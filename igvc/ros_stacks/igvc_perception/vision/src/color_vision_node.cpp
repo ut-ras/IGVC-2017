@@ -66,6 +66,7 @@ namespace vision
       camera_info_ptr = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("camera_info", ns_nh, ros::Duration(1.0));
       ROS_WARN_THROTTLE(1.0, "Waiting for camera info");
     }
+    //ROS_INFO(camera_info_ptr);
     m_cam_model.fromCameraInfo(camera_info_ptr);
 
     m_ground_cloud_pub = ns_nh.advertise<sensor_msgs::PointCloud2>("ground", 1, true);
@@ -78,7 +79,6 @@ namespace vision
       m_sampled_region_pub = ns_nh.advertise<sensor_msgs::Image>("sampled_region", 1, true);
       m_thresholded_image_pub = ns_nh.advertise<sensor_msgs::Image>("thresholded_image", 1, true);
     }
-
     m_last_sample_time = ros::Time(0);
   }
 
@@ -110,7 +110,7 @@ namespace vision
       pcl::PointXYZ point;
       point.x = values.at(i + 0);
       point.y = values.at(i + 1);
-      point.z = 0;
+      point.z = 1;
       points.points.push_back(point);
     }
 
@@ -121,6 +121,7 @@ namespace vision
 
   void ColorVisionNode::parseColors(std::string point_string, std::vector<cv::Vec3b>& colors)
   {
+    //ROS_INFO("PARSECOLOR");
     boost::char_separator<char> sep(" ,()[]");
     boost::tokenizer<boost::char_separator<char> > tokens(point_string, sep);
     std::vector<double> values = stringVectorToDoubleVector(std::vector<std::string>(tokens.begin(), tokens.end()));
@@ -134,11 +135,16 @@ namespace vision
 
   bool ColorVisionNode::isKnownObstacleColor(cv::Vec3b color)
   {
+    //ROS_INFO("ISKNOWNCOLOR");
     return (color.val[0] > m_known_bad_h_min) && (color.val[0] < m_known_bad_h_max) && (color.val[1] > m_known_bad_s_min) && (color.val[1] < m_known_bad_s_max) && (color.val[2] > m_known_bad_v_min) && (color.val[2] < m_known_bad_v_max);
   }
 
   bool ColorVisionNode::transformCloudToCamera(std_msgs::Header image_header, pcl::PointCloud<pcl::PointXYZ>& cloud, std::vector<cv::Point>& image_points)
   {
+    //ROS_INFO("CLOUDTOCAMERA");
+    // for (unsigned int i = 0; i < cloud.size(); i++) {
+    //     ROS_INFO("cloud_X: %f, cloud_Y: %f, cloud_Z: %f", cloud.points[i].x, cloud.points[i].y, cloud.points[i].z);    
+    // }
     cloud.header = pcl_conversions::toPCL(image_header);
     if(!m_tf_listener.waitForTransform(image_header.frame_id, cloud.header.frame_id, pcl_conversions::fromPCL(cloud.header).stamp, ros::Duration(0.05), ros::Duration(0.001)))
     {
@@ -146,13 +152,18 @@ namespace vision
       return false;
     }
     pcl::PointCloud<pcl::PointXYZ> camera_cloud;
+    //ROS_INFO("Frame ID: %s",image_header.frame_id.data());
+    
     pcl_ros::transformPointCloud(image_header.frame_id, cloud, camera_cloud, m_tf_listener);
 
     image_points.resize(cloud.size());
     for(unsigned int i = 0; i < cloud.size(); i++)
     {
       cv::Point3d cloud_point(camera_cloud.points[i].x, camera_cloud.points[i].y, camera_cloud.points[i].z);
+      ROS_INFO("CLOUDPOINTX:%f, CLOUDPOINTY:%f, CLOUDPOINTZ:%f", camera_cloud.points[i].x, camera_cloud.points[i].y, camera_cloud.points[i].z);
+      //ROS_INFO("%f, %f, %f", m_cam_model.fx(), m_cam_model.Tx(), m_cam_model.cx());
       image_points[i] = m_cam_model.project3dToPixel(cloud_point);
+      //ROS_INFO("POINTX:%d, POINTY:%d", image_points[i].x, image_points[i].y);
     }
 
     return true;
@@ -160,6 +171,7 @@ namespace vision
 
   void ColorVisionNode::generateGroundGrid()
   {
+    //ROS_INFO("GROUNDGRID");
     m_ground_grid.points.clear();
     for(double x = m_x_min; x <= m_x_max; x += m_resolution)
     {
@@ -168,7 +180,7 @@ namespace vision
         pcl::PointXYZ point;
         point.x = x;
         point.y = y;
-        point.z = 0;
+        point.z = 1;
         m_ground_grid.points.push_back(point);
       }
     }
@@ -179,6 +191,7 @@ namespace vision
 
   void ColorVisionNode::generateSampleRegion(bool initial)
   {
+    //ROS_INFO("SAMPLEREGION");
     // m_sample_boundaries.points.clear();
     if(initial)
     {
@@ -200,12 +213,16 @@ namespace vision
     // m_sample_boundaries.height = 1;
     // m_sample_boundaries.width = m_sample_boundaries.points.size();
 
-    ROS_INFO("Setting sample bounds to (%g,%g) (%g,%g) (%g,%g) (%g,%g) (%s)", m_sample_boundaries.points[0].x, m_sample_boundaries.points[0].y, m_sample_boundaries.points[1].x, m_sample_boundaries.points[1].y, m_sample_boundaries.points[2].x, m_sample_boundaries.points[2].y, m_sample_boundaries.points[3].x, m_sample_boundaries.points[3].y,
-        initial? "true" : "false");
+    ROS_INFO("Setting sample bounds to (%g,%g) (%g,%g) (%g,%g) (%g,%g) (%s)", m_sample_boundaries.points[0].x, 
+      m_sample_boundaries.points[0].y, m_sample_boundaries.points[1].x, m_sample_boundaries.points[1].y, 
+      m_sample_boundaries.points[2].x, m_sample_boundaries.points[2].y, m_sample_boundaries.points[3].x, 
+      m_sample_boundaries.points[3].y, initial? "true" : "false");
   }
 
   void ColorVisionNode::drawRegion(cv::Mat mat, cv::vector<cv::Point> contour, CvScalar line_color)
   {
+    //ROS_INFO("DRAWREGION");
+    ROS_INFO("Contour size: %d", contour.size());
     for(unsigned int i = 0; i < contour.size(); i++)
     {
       cv::line(mat, contour[i], contour[(i + 1) % contour.size()], line_color, 2);
@@ -219,13 +236,16 @@ namespace vision
 
   void ColorVisionNode::updateColorRegions(cv::Mat mat, cv::vector<cv::Point> contour)
   {
+    //ROS_INFO("COLORREGION");
     //find roi
     int min_x = std::numeric_limits<unsigned int>::max();
     int min_y = std::numeric_limits<unsigned int>::max();
     int max_x = 0;
     int max_y = 0;
+    //ROS_INFO("update_min_x: %d", min_x);
     for(unsigned int i = 0; i < contour.size(); i++)
     {
+      ROS_INFO("contour x: %d contour y: %d", contour[i].x, contour[i].y);
       if(contour[i].x < min_x)
       {
         min_x = contour[i].x;
@@ -242,6 +262,7 @@ namespace vision
       {
         max_y = contour[i].y;
       }
+      //ROS_INFO("contour x: %d contour y: %d", contour[i].x, contour[i].y);
     }
 
     //generate mask
@@ -251,13 +272,21 @@ namespace vision
     int contours_n[1] = {contour.size()};
 
     cv::fillPoly(mask, contours, contours_n, 1, cv::Scalar(255));
+
+    
+    // cv::namedWindow("PARSEDIMAGE", cv::WINDOW_AUTOSIZE);  // DEBUG: REMOVE ME
+    // cv::imshow("PARSEDIMAGE", mat);                       // DEBUG: REMOVE ME
+    // cv::namedWindow("Original", cv::WINDOW_AUTOSIZE);     // DEBUG: REMOVE ME
+    // cv::imshow("Original", mask);                         // DEBUG: REMOVE ME
+    // cv::waitKey(10);
     
     //gather all the pixels in the polygon
 //    std::vector<cv::Vec3b> color_palette;
+  //if (min_x > 0 && min_y > 0)    // DEBUG: REMOVE ME
     for(int y = min_y; y <= max_y; y++)
     {
       for(int x = min_x; x <= max_x; x++)
-      {
+      {       
         if(!isOnImage(mat, x, y))
         {
           ROS_WARN_ONCE("Some parts of the sample space are not on the image!");
@@ -308,6 +337,7 @@ namespace vision
 //      p.at<float>(i, 2) = (float) m_color_palette[i].val[2] / 255.0f;
 //    }
 
+    //ROS_INFO("STUCKTEST");    
     //(re)cluster the color set into K groups
     cv::Mat best_labels, centers, clustered;
     int K = m_num_color_regions;
@@ -342,6 +372,8 @@ namespace vision
 
   bool ColorVisionNode::isGroundColor(cv::Vec3b color)
   {
+    //ROS_INFO("GROUNDCOLOR");
+    //return true;
     for(unsigned int j = 0; j < m_color_regions.size(); j++)
     {
       if(m_color_regions[j].contains(color))
@@ -354,6 +386,7 @@ namespace vision
 
   void ColorVisionNode::thresholdImage(cv::Mat rgb_mat, std::vector<ColorRegion> regions, cv::Mat& thresholded)
   {
+    //ROS_INFO("THRESHOLDIMAGE");
     cv::Mat hsv_mat;
     cvtColor(rgb_mat, hsv_mat, CV_RGB2HSV);
 
@@ -412,6 +445,7 @@ namespace vision
 
   void ColorVisionNode::classifyGroundGrid(cv::Mat& rgb_mat, std_msgs::Header image_header)
   {
+    //ROS_INFO("CLASSIFYGROUND");
     pcl::PointCloud<pcl::PointXYZRGB> ground_cloud;
     pcl::PointCloud<pcl::PointXYZRGB> obstacle_cloud;
     for(unsigned int i = 0; i < m_ground_image_points.size(); i++)
@@ -440,6 +474,7 @@ namespace vision
 //        std::cerr << (int) hsv_color.val[0] << ", " << (int)  hsv_color.val[1] << ", " << (int)  hsv_color.val[2] << std::endl;
       }
     }
+    ROS_INFO("ground size %d obstacles %d", ground_cloud.points.size(), obstacle_cloud.points.size());
     sensor_msgs::PointCloud2 ground_cloud_msg;
     pcl::toROSMsg(ground_cloud, ground_cloud_msg);
     ground_cloud_msg.header.frame_id = m_ground_grid.header.frame_id;
@@ -458,6 +493,7 @@ namespace vision
 
   bool lineIntersection(cv::Point p1, cv::Point p2, cv::Point p3, cv::Point p4, cv::Point& intersection) 
   {
+    //ROS_INFO("LINEINTESECTION");
     float x1 = p1.x, x2 = p2.x, x3 = p3.x, x4 = p4.x;
     float y1 = p1.y, y2 = p2.y, y3 = p3.y, y4 = p4.y;
      
@@ -492,10 +528,12 @@ namespace vision
 
   void ColorVisionNode::clampContourToImage(cv::Mat& mat, cv::vector<cv::Point>& contour)
   {
+    //ROS_INFO("CONTOURTOIMAGE");
     int min_x = std::numeric_limits<unsigned int>::max();
     int min_y = std::numeric_limits<unsigned int>::max();
     int max_x = 0;
     int max_y = 0;
+    //ROS_INFO("min_x: %d", min_x);
     for(unsigned int i = 0; i < contour.size(); i++)
     {
       if(contour[i].x < min_x)
@@ -515,13 +553,13 @@ namespace vision
         max_y = contour[i].y;
       }
       ROS_INFO("Parsing %d,%d", contour[i].x, contour[i].y);
-    //cv::namedWindow("PARSEDIMAGE", cv::WINDOW_AUTOSIZE);
-    //cv::imshow("PARSEDIMAGE", mat);
+      cv::namedWindow("PARSEDIMAGE", cv::WINDOW_AUTOSIZE);
+      cv::imshow("PARSEDIMAGE", mat);
     //cv::namedWindow("Original", cv::WINDOW_AUTOSIZE);
     //cv::imshow("Original", hsv_mat);
-    cv::waitKey(0);
+    //cv::waitKey(0);
     }
-
+    // ROS_INFO("I am not stuck");
     // cv::Mat mask(max_y-min_y, max_x=min_x, CV_8U, cv::Scalar(0));
 
     // cv::vector<cv::Point> shifted_contour = contour;;
@@ -714,7 +752,7 @@ namespace vision
 //    {
 //      ROS_INFO_ONCE("Getting contour from (%g,%g) (%g,%g) (%g,%g) (%g,%g)", m_sample_boundaries.points[0].x, m_sample_boundaries.points[0].y, m_sample_boundaries.points[1].x, m_sample_boundaries.points[1].y, m_sample_boundaries.points[2].x, m_sample_boundaries.points[2].y, m_sample_boundaries.points[3].x, m_sample_boundaries.points[3].y);
 //    }
-
+    //ROS_INFO("IMAGECALLBACK");
     sensor_msgs::Image ros_img = *image;
     cv_bridge::CvImagePtr bridge_img = cv_bridge::toCvCopy(ros_img, ros_img.encoding);
     cv::Mat rgb_mat = bridge_img->image;
@@ -746,7 +784,7 @@ namespace vision
 
       if(m_first_sample)
       {
-//        ROS_INFO_ONCE("Contour points are (%d,%d) (%d,%d) (%d,%d) (%d,%d)", m_sample_area_contour[0].x, m_sample_area_contour[0].y, m_sample_area_contour[1].x, m_sample_area_contour[1].y, m_sample_area_contour[2].x, m_sample_area_contour[2].y, m_sample_area_contour[3].x, m_sample_area_contour[3].y);
+        ROS_INFO_ONCE("Contour points are (%d,%d) (%d,%d) (%d,%d) (%d,%d)", m_sample_area_contour[0].x, m_sample_area_contour[0].y, m_sample_area_contour[1].x, m_sample_area_contour[1].y, m_sample_area_contour[2].x, m_sample_area_contour[2].y, m_sample_area_contour[3].x, m_sample_area_contour[3].y);
         m_initial_sample_image = *bridge_img->toImageMsg();
       }
       else

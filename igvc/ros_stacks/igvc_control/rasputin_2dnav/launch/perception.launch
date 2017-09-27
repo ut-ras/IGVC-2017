@@ -2,8 +2,7 @@
 <launch>
   <param name="robot_description" textfile="$(find igvc_sim)/models/hal/model.urdf"/>
   
-  <!--temporary fix to tf error-->
-  <!--node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="1 0 0 0 0 0 1 /map /base_link 100" /-->
+  <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="1 0 0 0 0 0 1 /map /base_link 100"/>
 
   <node pkg="ekf" type="ekf_node.py" name="ekf_node" output="screen">
     <param name="using_gps" value="false" type="bool"/>

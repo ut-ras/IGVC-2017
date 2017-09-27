@@ -122,25 +122,7 @@ def sendCommand(data):
         # calculate wheel speeds based on input angular & linear velocities
         left = data.linear.x + data.angular.z * WHEEL_AXIS_LEN / 2.0
         right = data.linear.x - data.angular.z * WHEEL_AXIS_LEN / 2.0
-        """        
-        print "want", left, right
 
-        multleft = 0.0
-        multright = 0.0
-        if abs(left) >= abs(past["motors"]["left"]):
-          multleft = -0.25
-        else:
-          multleft = 4
-        if abs(right) >= abs(past["motors"]["right"]):
-          multright = -0.25
-        else:
-          multright = 4
-
-        left = left - past["motors"]["left"] * multleft / 2
-        right = right - past["motors"]["right"] * multright / 2
-
-        print left, right, past["motors"]["left"], past["motors"]["right"]
-        """
         left /= SPEED_LIMITER;
         right /= SPEED_LIMITER;
         # convert to ticks/iteration
@@ -171,10 +153,7 @@ def lm4fNode():
         {"debugPub":debugPub, "velPub":velPub})
 
     global LISTENING_TO_NAVSTACK
-    LISTENING_TO_NAVSTACK = rospy.get_param("~listening_to_navstack", False); 
-    #global past
-    #past = json.loads ('{"received":{"right":0,"left":0},"motors":{"right":0.000000,"left":0.000000},"deltas":{"right":0,"left":0}}')
-
+    LISTENING_TO_NAVSTACK = rospy.get_param("~listening_to_navstack", False)
 
     r = rospy.Rate(10)
     while not rospy.is_shutdown():
@@ -204,6 +183,6 @@ if __name__ == '__main__':
     except rospy.ROSInterruptException: pass
     except serial.SerialException:
         print 'comm error'
-        # comm.close()
+        comm.close() #maybe
         sys.exit()
         

@@ -204,6 +204,6 @@ if __name__ == '__main__':
     except rospy.ROSInterruptException: pass
     except serial.SerialException:
         print 'comm error'
-        comm.close()
+        # comm.close()
         sys.exit()
         
